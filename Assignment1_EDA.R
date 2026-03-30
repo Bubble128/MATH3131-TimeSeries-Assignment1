@@ -94,3 +94,10 @@ acf(res_tlb, main = "ACF of TLB Residuals")
 pacf(res_tlb, main = "PACF of TLB Residuals")
 
 par(mfrow = c(1, 1))
+
+# Hypothesis Testing
+print("--- Portmanteau Test (Ljung-Box) for TFR ARIMA(1,1,1) Residuals ---")
+Box.test(res_tfr, lag = 10, type = "Ljung-Box")
+
+print("--- Portmanteau Test (Ljung-Box) for TLB ARIMA(0,1,0) Residuals ---")
+Box.test(res_tlb, lag = 10, type = "Ljung-Box")
