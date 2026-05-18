@@ -55,3 +55,72 @@ fit_tlb_sarima_110_011 <- Arima(
   order = c(1,1,0),
   seasonal = list(order = c(0,1,1), period = 12)
 )
+
+# Model comparison: AIC and BIC
+tfr_model_table <- data.frame(
+  Series = "TFR",
+  Model = c(
+    "ARIMA(1,1,0)",
+    "ARIMA(0,1,1)",
+    "ARIMA(1,1,1)",
+    "ARIMA(12,1,0)",
+    "ARIMA(13,1,0)",
+    "ARIMA(1,1,0)(0,1,1)[12]",
+    "ARIMA(5,1,0)(0,1,1)[12]"
+  ),
+  AIC = c(
+    AIC(fit_tfr_110),
+    AIC(fit_tfr_011),
+    AIC(fit_tfr_111),
+    AIC(fit_tfr_120),
+    AIC(fit_tfr_130),
+    AIC(fit_tfr_sarima_110_011),
+    AIC(fit_tfr_sarima_510_011)
+  ),
+  BIC = c(
+    BIC(fit_tfr_110),
+    BIC(fit_tfr_011),
+    BIC(fit_tfr_111),
+    BIC(fit_tfr_120),
+    BIC(fit_tfr_130),
+    BIC(fit_tfr_sarima_110_011),
+    BIC(fit_tfr_sarima_510_011)
+  )
+)
+
+tlb_model_table <- data.frame(
+  Series = "TLB",
+  Model = c(
+    "ARIMA(0,1,0)",
+    "ARIMA(0,1,1)",
+    "ARIMA(1,1,0)",
+    "ARIMA(12,1,0)",
+    "ARIMA(13,1,0)",
+    "ARIMA(0,1,1)(0,1,1)[12]",
+    "ARIMA(1,1,0)(0,1,1)[12]"
+  ),
+  AIC = c(
+    AIC(fit_tlb_010),
+    AIC(fit_tlb_011),
+    AIC(fit_tlb_110),
+    AIC(fit_tlb_120),
+    AIC(fit_tlb_130),
+    AIC(fit_tlb_sarima_011_011),
+    AIC(fit_tlb_sarima_110_011)
+  ),
+  BIC = c(
+    BIC(fit_tlb_010),
+    BIC(fit_tlb_011),
+    BIC(fit_tlb_110),
+    BIC(fit_tlb_120),
+    BIC(fit_tlb_130),
+    BIC(fit_tlb_sarima_011_011),
+    BIC(fit_tlb_sarima_110_011)
+  )
+)
+
+print("--- TFR AIC/BIC comparison ---")
+print(tfr_model_table)
+
+print("--- TLB AIC/BIC comparison ---")
+print(tlb_model_table)
