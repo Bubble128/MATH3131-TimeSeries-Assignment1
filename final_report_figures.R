@@ -134,8 +134,64 @@ pacf(tlb_train_diff1,
 
 dev.off()
 
+# 6. Regular and seasonal differenced log series for SARIMA identification
+# d = 1 and D = 1 with seasonal period 12
+# This is used to help identify p, q, P and Q for SARIMA-style models.
 
-# 6. Second-order differenced log(TFR) plot and ACF/PACF
+tfr_train_diff_d1_D1 <- diff(diff(tfr_train, differences = 1), lag = 12, differences = 1)
+tlb_train_diff_d1_D1 <- diff(diff(tlb_train, differences = 1), lag = 12, differences = 1)
+
+png("fig_d1_D1_log_series_TLB_TFR_1960_2012.png",
+    width = 1200, height = 900, res = 120)
+
+par(mfrow = c(2, 1), mar = c(4, 4, 3, 2))
+
+plot(tlb_train_diff_d1_D1,
+     main = "Regular and Seasonal Differenced log(TLB): d=1, D=1, period=12",
+     ylab = "Differenced log(TLB)",
+     xlab = "Year",
+     col = "blue",
+     lwd = 2)
+abline(h = 0, lty = 2)
+
+plot(tfr_train_diff_d1_D1,
+     main = "Regular and Seasonal Differenced log(TFR): d=1, D=1, period=12",
+     ylab = "Differenced log(TFR)",
+     xlab = "Year",
+     col = "red",
+     lwd = 2)
+abline(h = 0, lty = 2)
+
+dev.off()
+
+
+# 7. ACF/PACF after regular and seasonal differencing
+# These plots are used to identify SARIMA p, q, P and Q.
+
+png("fig_d1_D1_log_acf_pacf_TLB_TFR_lag40.png",
+    width = 1200, height = 900, res = 120)
+
+par(mfrow = c(2, 2), mar = c(4, 4, 3, 2))
+
+acf(tfr_train_diff_d1_D1,
+    main = "ACF of log(TFR) after d=1 and D=1",
+    lag.max = 40)
+
+pacf(tfr_train_diff_d1_D1,
+     main = "PACF of log(TFR) after d=1 and D=1",
+     lag.max = 40)
+
+acf(tlb_train_diff_d1_D1,
+    main = "ACF of log(TLB) after d=1 and D=1",
+    lag.max = 40)
+
+pacf(tlb_train_diff_d1_D1,
+     main = "PACF of log(TLB) after d=1 and D=1",
+     lag.max = 40)
+
+dev.off()
+
+# 8. Second-order differenced log(TFR) plot and ACF/PACF
 
 tfr_train_diff2 <- diff(tfr_train, differences = 2)
 
