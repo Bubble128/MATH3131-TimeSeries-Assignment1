@@ -49,69 +49,73 @@ safe_arima <- function(series, order, seasonal = NULL) {
 }
 
 
+# 4. Candidate model fitting
+
 # TLB candidate models
 
-# TLB is mainly considered with d = 1.
-# The first-differenced log(TLB) series is reasonably stable.
-# Low-order ARIMA models are used as baselines.
-# Period-12 SARIMA-style models are included because lag 12 is visible
-# in the ACF/PACF and may correspond to a 12-year demographic cycle.
+# TLB is modelled on the log scale.
+# The first-differenced log(TLB) series suggests d = 1.
+# The additional period-12 seasonal differencing suggests D = 1.
+# After applying d = 1 and D = 1, the PACF shows a notable spike
+# around lag 4, while the ACF shows seasonal structure around lag 12.
+# Therefore, SARIMA candidates with p = 4, q = 0 or 1,
+# P = 0, D = 1 and Q = 1 are considered.
 
+# Traditional ARIMA baseline models
 fit_tlb_010 <- safe_arima(tlb_train, order = c(0, 1, 0))
 fit_tlb_011 <- safe_arima(tlb_train, order = c(0, 1, 1))
 fit_tlb_110 <- safe_arima(tlb_train, order = c(1, 1, 0))
 
-fit_tlb_sarima_010_011 <- safe_arima(
+# SARIMA candidates identified after d = 1 and D = 1
+fit_tlb_sarima_410_011 <- safe_arima(
   tlb_train,
-  order = c(0, 1, 0),
+  order = c(4, 1, 0),
   seasonal = list(order = c(0, 1, 1), period = 12)
 )
 
-fit_tlb_sarima_110_011 <- safe_arima(
+fit_tlb_sarima_411_011 <- safe_arima(
   tlb_train,
-  order = c(1, 1, 0),
+  order = c(4, 1, 1),
   seasonal = list(order = c(0, 1, 1), period = 12)
-)
-
-fit_tlb_sarima_010_110 <- safe_arima(
-  tlb_train,
-  order = c(0, 1, 0),
-  seasonal = list(order = c(1, 1, 0), period = 12)
 )
 
 
 # TFR candidate models
 
-# TFR is more complex.
-# d = 1 is the main starting point because first-differenced log(TFR)
-# is already roughly centred around zero.
-# d = 2 is also included as an alternative candidate because TFR has a
-# strong long-term decline and second-order differencing is a defensible
-# sensitivity check.
+# TFR is also modelled on the log scale.
+# The first-differenced log(TFR) series suggests d = 1.
+# The d = 1 and D = 1 ACF/PACF suggests p = 1 or 4,
+# q = 1 or 2, P = 0 and Q = 1.
+# Therefore, several SARIMA candidates are considered.
 
-fit_tfr_111 <- safe_arima(tfr_train, order = c(1, 1, 1))
-fit_tfr_011 <- safe_arima(tfr_train, order = c(0, 1, 1))
+# Traditional ARIMA baseline models
 fit_tfr_110 <- safe_arima(tfr_train, order = c(1, 1, 0))
+fit_tfr_011 <- safe_arima(tfr_train, order = c(0, 1, 1))
+fit_tfr_111 <- safe_arima(tfr_train, order = c(1, 1, 1))
 
-fit_tfr_021 <- safe_arima(tfr_train, order = c(0, 2, 1))
-fit_tfr_120_d2 <- safe_arima(tfr_train, order = c(12, 2, 0))
-
-fit_tfr_sarima_110_011 <- safe_arima(
+# SARIMA candidates identified after d = 1 and D = 1
+fit_tfr_sarima_111_011 <- safe_arima(
   tfr_train,
-  order = c(1, 1, 0),
+  order = c(1, 1, 1),
   seasonal = list(order = c(0, 1, 1), period = 12)
 )
 
-fit_tfr_sarima_010_011 <- safe_arima(
+fit_tfr_sarima_112_011 <- safe_arima(
   tfr_train,
-  order = c(0, 1, 0),
+  order = c(1, 1, 2),
   seasonal = list(order = c(0, 1, 1), period = 12)
 )
 
-fit_tfr_sarima_620_110 <- safe_arima(
+fit_tfr_sarima_411_011 <- safe_arima(
   tfr_train,
-  order = c(6, 2, 0),
-  seasonal = list(order = c(1, 1, 0), period = 12)
+  order = c(4, 1, 1),
+  seasonal = list(order = c(0, 1, 1), period = 12)
+)
+
+fit_tfr_sarima_412_011 <- safe_arima(
+  tfr_train,
+  order = c(4, 1, 2),
+  seasonal = list(order = c(0, 1, 1), period = 12)
 )
 
 
@@ -204,9 +208,8 @@ tlb_model_names <- c(
   "ARIMA(0,1,0)",
   "ARIMA(0,1,1)",
   "ARIMA(1,1,0)",
-  "ARIMA(0,1,0)(0,1,1)[12]",
-  "ARIMA(1,1,0)(0,1,1)[12]",
-  "ARIMA(0,1,0)(1,1,0)[12]",
+  "ARIMA(4,1,0)(0,1,1)[12]",
+  "ARIMA(4,1,1)(0,1,1)[12]",
   "auto.arima"
 )
 
@@ -214,9 +217,8 @@ tlb_model_objects <- list(
   fit_tlb_010,
   fit_tlb_011,
   fit_tlb_110,
-  fit_tlb_sarima_010_011,
-  fit_tlb_sarima_110_011,
-  fit_tlb_sarima_010_110,
+  fit_tlb_sarima_410_011,
+  fit_tlb_sarima_411_011,
   auto_tlb
 )
 
@@ -234,26 +236,24 @@ print(tlb_model_table)
 # 7. TFR model comparison table
 
 tfr_model_names <- c(
-  "ARIMA(1,1,1)",
-  "ARIMA(0,1,1)",
   "ARIMA(1,1,0)",
-  "ARIMA(0,2,1)",
-  "ARIMA(12,2,0)",
-  "ARIMA(1,1,0)(0,1,1)[12]",
-  "ARIMA(0,1,0)(0,1,1)[12]",
-  "ARIMA(6,2,0)(1,1,0)[12]",
+  "ARIMA(0,1,1)",
+  "ARIMA(1,1,1)",
+  "ARIMA(1,1,1)(0,1,1)[12]",
+  "ARIMA(1,1,2)(0,1,1)[12]",
+  "ARIMA(4,1,1)(0,1,1)[12]",
+  "ARIMA(4,1,2)(0,1,1)[12]",
   "auto.arima"
 )
 
 tfr_model_objects <- list(
-  fit_tfr_111,
-  fit_tfr_011,
   fit_tfr_110,
-  fit_tfr_021,
-  fit_tfr_120_d2,
-  fit_tfr_sarima_110_011,
-  fit_tfr_sarima_010_011,
-  fit_tfr_sarima_620_110,
+  fit_tfr_011,
+  fit_tfr_111,
+  fit_tfr_sarima_111_011,
+  fit_tfr_sarima_112_011,
+  fit_tfr_sarima_411_011,
+  fit_tfr_sarima_412_011,
   auto_tfr
 )
 
