@@ -67,6 +67,18 @@ fit_tlb_011 <- safe_arima(tlb_train, order = c(0, 1, 1))
 fit_tlb_110 <- safe_arima(tlb_train, order = c(1, 1, 0))
 
 # SARIMA candidates identified after d = 1 and D = 1
+fit_tlb_sarima_110_011 <- safe_arima(
+  tlb_train,
+  order = c(1, 1, 0),
+  seasonal = list(order = c(0, 1, 1), period = 12)
+)
+
+fit_tlb_sarima_011_011 <- safe_arima(
+  tlb_train,
+  order = c(0, 1, 1),
+  seasonal = list(order = c(0, 1, 1), period = 12)
+)
+
 fit_tlb_sarima_410_011 <- safe_arima(
   tlb_train,
   order = c(4, 1, 0),
@@ -103,6 +115,12 @@ fit_tfr_sarima_111_011 <- safe_arima(
 fit_tfr_sarima_112_011 <- safe_arima(
   tfr_train,
   order = c(1, 1, 2),
+  seasonal = list(order = c(0, 1, 1), period = 12)
+)
+
+fit_tfr_sarima_410_011 <- safe_arima(
+  tfr_train,
+  order = c(4, 1, 0),
   seasonal = list(order = c(0, 1, 1), period = 12)
 )
 
@@ -208,6 +226,8 @@ tlb_model_names <- c(
   "ARIMA(0,1,0)",
   "ARIMA(0,1,1)",
   "ARIMA(1,1,0)",
+  "ARIMA(1,1,0)(0,1,1)[12]",
+  "ARIMA(0,1,1)(0,1,1)[12]",
   "ARIMA(4,1,0)(0,1,1)[12]",
   "ARIMA(4,1,1)(0,1,1)[12]",
   "auto.arima"
@@ -217,6 +237,8 @@ tlb_model_objects <- list(
   fit_tlb_010,
   fit_tlb_011,
   fit_tlb_110,
+  fit_tlb_sarima_110_011,
+  fit_tlb_sarima_011_011,
   fit_tlb_sarima_410_011,
   fit_tlb_sarima_411_011,
   auto_tlb
@@ -241,6 +263,7 @@ tfr_model_names <- c(
   "ARIMA(1,1,1)",
   "ARIMA(1,1,1)(0,1,1)[12]",
   "ARIMA(1,1,2)(0,1,1)[12]",
+  "ARIMA(4,1,0)(0,1,1)[12]",
   "ARIMA(4,1,1)(0,1,1)[12]",
   "ARIMA(4,1,2)(0,1,1)[12]",
   "auto.arima"
@@ -252,6 +275,7 @@ tfr_model_objects <- list(
   fit_tfr_111,
   fit_tfr_sarima_111_011,
   fit_tfr_sarima_112_011,
+  fit_tfr_sarima_410_011,
   fit_tfr_sarima_411_011,
   fit_tfr_sarima_412_011,
   auto_tfr
