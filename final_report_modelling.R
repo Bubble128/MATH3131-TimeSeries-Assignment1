@@ -5,7 +5,6 @@ raw_data <- read.csv("BirthsAndFertilityRatesAnnual.csv",
                      header = FALSE,
                      stringsAsFactors = FALSE)
 
-
 # Extract TFR row and TLB row, then reverse to chronological order: 1960 -> 2024
 tfr_values <- rev(as.numeric(unlist(raw_data[2, 3:67])))
 tlb_values <- rev(as.numeric(unlist(raw_data[16, 3:67])))
