@@ -5,6 +5,7 @@ raw_data <- read.csv("BirthsAndFertilityRatesAnnual.csv",
                      header = FALSE,
                      stringsAsFactors = FALSE)
 
+
 # Extract TFR row and TLB row, then reverse to chronological order: 1960 -> 2024
 tfr_values <- rev(as.numeric(unlist(raw_data[2, 3:67])))
 tlb_values <- rev(as.numeric(unlist(raw_data[16, 3:67])))
@@ -26,6 +27,13 @@ tlb_train <- window(log_tlb_ts, start = 1960, end = 2012)
 # Testing set: 2013-2024
 tfr_test <- window(log_tfr_ts, start = 2013, end = 2024)
 tlb_test <- window(log_tlb_ts, start = 2013, end = 2024)
+
+# Raw-scale training and testing series for plotting
+tfr_train_raw <- window(tfr_ts, start = 1960, end = 2012)
+tlb_train_raw <- window(tlb_ts, start = 1960, end = 2012)
+
+tfr_test_raw <- window(tfr_ts, start = 2013, end = 2024)
+tlb_test_raw <- window(tlb_ts, start = 2013, end = 2024)
 
 # 4. Candidate model fitting
 
@@ -307,3 +315,104 @@ write.csv(
 )
 
 print("Model comparison tables exported successfully.")
+
+# 8. Forecast plots for selected final models
+
+# Preferred final models:
+# TFR: ARIMA(4,1,0)(0,1,1)[12]
+# TLB: ARIMA(1,1,0)(0,1,1)[12]
+
+final_tfr_model <- fit_tfr_sarima_410_011
+final_tlb_model <- fit_tlb_sarima_110_011
+
+h_tfr <- length(tfr_test)
+h_tlb <- length(tlb_test)
+
+fc_tfr_log <- forecast(final_tfr_model, h = h_tfr)
+fc_tlb_log <- forecast(final_tlb_model, h = h_tlb)
+
+# Convert forecasts back to original scale for presentation
+fc_tfr_mean <- exp(fc_tfr_log$mean)
+fc_tfr_lower <- exp(fc_tfr_log$lower[, 2])  # 95% lower
+fc_tfr_upper <- exp(fc_tfr_log$upper[, 2])  # 95% upper
+
+fc_tlb_mean <- exp(fc_tlb_log$mean)
+fc_tlb_lower <- exp(fc_tlb_log$lower[, 2])
+fc_tlb_upper <- exp(fc_tlb_log$upper[, 2])
+
+years_test <- 2013:2024
+
+# TFR forecast plot
+
+png("fig_tfr_forecast.png", width = 1200, height = 800, res = 120)
+
+plot(
+  tfr_ts,
+  xlim = c(1960, 2024),
+  ylim = range(c(tfr_ts, fc_tfr_lower, fc_tfr_upper), na.rm = TRUE),
+  main = "Forecast of Singapore TFR, 2013-2024",
+  ylab = "TFR",
+  xlab = "Year",
+  col = "black",
+  lwd = 2
+)
+
+# Add testing actual values
+lines(tfr_test_raw, col = "red", lwd = 2)
+
+# Add forecast mean and interval
+lines(ts(fc_tfr_mean, start = 2013, frequency = 1), col = "blue", lwd = 2)
+lines(ts(fc_tfr_lower, start = 2013, frequency = 1), col = "blue", lty = 2)
+lines(ts(fc_tfr_upper, start = 2013, frequency = 1), col = "blue", lty = 2)
+
+abline(v = 2012, lty = 3)
+
+legend(
+  "topright",
+  legend = c("Observed series", "Testing actual", "Forecast mean", "95% interval"),
+  col = c("black", "red", "blue", "blue"),
+  lty = c(1, 1, 1, 2),
+  lwd = c(2, 2, 2, 1),
+  bty = "n"
+)
+
+dev.off()
+
+
+# TLB forecast plot
+
+png("fig_tlb_forecast.png", width = 1200, height = 800, res = 120)
+
+plot(
+  tlb_ts,
+  xlim = c(1960, 2024),
+  ylim = range(c(tlb_ts, fc_tlb_lower, fc_tlb_upper), na.rm = TRUE),
+  main = "Forecast of Singapore Total Live Births, 2013-2024",
+  ylab = "Total Live Births",
+  xlab = "Year",
+  col = "black",
+  lwd = 2
+)
+
+# Add testing actual values
+lines(tlb_test_raw, col = "red", lwd = 2)
+
+# Add forecast mean and interval
+lines(ts(fc_tlb_mean, start = 2013, frequency = 1), col = "blue", lwd = 2)
+lines(ts(fc_tlb_lower, start = 2013, frequency = 1), col = "blue", lty = 2)
+lines(ts(fc_tlb_upper, start = 2013, frequency = 1), col = "blue", lty = 2)
+
+abline(v = 2012, lty = 3)
+
+legend(
+  "topright",
+  legend = c("Observed series", "Testing actual", "Forecast mean", "95% interval"),
+  col = c("black", "red", "blue", "blue"),
+  lty = c(1, 1, 1, 2),
+  lwd = c(2, 2, 2, 1),
+  bty = "n"
+)
+
+dev.off()
+
+print("Forecast plots exported successfully.")
